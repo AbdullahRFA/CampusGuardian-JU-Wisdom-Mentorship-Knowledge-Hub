@@ -31,9 +31,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
- 
-
+  var storeUserPrompt = 'Chat messages will appear here...';
+  var userPrompt = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,16 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      // body:Container(
-      //   alignment: Alignment.center,
-      //   child: Text("Welcome JU Wisdom-Mentorship and Knowledge Hub ",
-      //   style: TextStyle(
-      //     fontSize: 21,
-      //     fontWeight: FontWeight.bold
-      //   ),
-      //   ),
-      //  
-      // ),
+
       body: Center(
         child: Container(
           child: Card(
@@ -70,10 +60,69 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
+
+
+
       floatingActionButton: FloatingActionButton(
-          onPressed: (){},
-        child: Icon(Icons.chat),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (context) {
+              return StatefulBuilder(
+                builder: (context, setModalState) {
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    child: Column(
+                      children: [
+                        const ListTile(
+                          leading: Icon(Icons.chat),
+                          title: Text("Chat with AI"),
+                        ),
+                        const Divider(),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              storeUserPrompt,
+                              style: const TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            controller: userPrompt,
+                            decoration: InputDecoration(
+                              hintText: "Type your message...",
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  setModalState(() {
+                                    storeUserPrompt = userPrompt.text;
+                                    userPrompt.clear();
+                                  });
+                                },
+                                icon: const Icon(Icons.send, color: Colors.blue),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+        child: const Icon(Icons.chat),
       ),
+      
     );
   }
 }
