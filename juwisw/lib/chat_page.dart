@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -17,8 +18,38 @@ class _ChatPageState extends State<ChatPage> {
 
   List<Map<String, String>> messages = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadMessages(); // Load saved chat history
+  }
+
+  // 🔹 Save messages to local storage
+  Future<void> _saveMessages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(messages);
+    await prefs.setString("chat_history", encoded);
+  }
+
+// 🔹 Load messages from local storage
+  Future<void> _loadMessages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString("chat_history");
+    if (stored != null) {
+      final decoded = jsonDecode(stored) as List; // Decode as a generic List
+
+      setState(() {
+        // Map each item in the list to the correct type
+        messages = decoded
+            .map((item) => Map<String, String>.from(item as Map))
+            .toList();
+      });
+    }
+  }
+
+  // 🔹 Fetch AI response from Gemini API
   Future<void> getResponse(String query) async {
-    const String apiKey = "AIzaSyAohznfnNbj-R6yvNGU89UNQGzrUKeMp7k"; // 🔑 Replace securely
+    const String apiKey = "AIzaSyAohznfnNbj-R6yvNGU89UNQGzrUKeMp7k"; // Replace with your API key
     final String url =
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$apiKey";
 
@@ -44,7 +75,6 @@ class _ChatPageState extends State<ChatPage> {
       });
 
       if (res.statusCode == 200) {
-        // print(res.body);
         final data = jsonDecode(res.body);
         final output = data["candidates"]?[0]["content"]?["parts"]?[0]?["text"] ??
             "⚠️ No response";
@@ -54,24 +84,25 @@ class _ChatPageState extends State<ChatPage> {
         });
 
         _scrollToBottom();
+        _saveMessages(); // Save after AI responds
       } else {
         setState(() {
-          // print(res.body);
-          messages.add(
-              {"role": "ai", "text": "❌ Error ${res.statusCode}: ${res.body}"});
+          messages.add({"role": "ai", "text": "❌ Error ${res.statusCode}: ${res.body}"});
         });
         _scrollToBottom();
+        _saveMessages();
       }
     } catch (e) {
-      // print(e);
       setState(() {
         messages.removeWhere((msg) => msg["role"] == "typing");
         messages.add({"role": "ai", "text": "⚠️ Exception: $e"});
       });
       _scrollToBottom();
+      _saveMessages();
     }
   }
 
+  // 🔹 When user sends message
   void sendMessage() {
     final text = searchController.text.trim();
     if (text.isEmpty) return;
@@ -83,6 +114,8 @@ class _ChatPageState extends State<ChatPage> {
     });
 
     _scrollToBottom();
+    _saveMessages(); // Save after user sends
+
     getResponse(text);
   }
 
@@ -108,6 +141,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Column(
         children: [
+          // Chat area
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -139,6 +173,7 @@ class _ChatPageState extends State<ChatPage> {
               },
             ),
           ),
+          // Input area
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -248,8 +283,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
       animation: _dotCount,
       builder: (context, child) {
         return Text("AI is typing${"." * _dotCount.value}",
-            style:
-            const TextStyle(fontSize: 16, fontStyle: FontStyle.italic));
+            style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic));
       },
     );
   }
