@@ -41,16 +41,39 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body:Container(
-        alignment: Alignment.center,
-        child: Text("Welcome JU Wisdom-Mentorship and Knowledge Hub ",
-        style: TextStyle(
-          fontSize: 21,
-          fontWeight: FontWeight.bold
-        ),
-        ),
+      // body:Container(
+      //   alignment: Alignment.center,
+      //   child: Text("Welcome JU Wisdom-Mentorship and Knowledge Hub ",
+      //   style: TextStyle(
+      //     fontSize: 21,
+      //     fontWeight: FontWeight.bold
+      //   ),
+      //   ),
+      //  
+      // ),
+      body: Center(
+        child: Container(
+          child: Card(
 
-      )
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: Text("Welcome to the JuWise ",
+              style: TextStyle(
+                height: 5,
+                wordSpacing: 5,
+                fontSize: 21,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue
+              ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: (){},
+        child: Icon(Icons.chat),
+      ),
     );
   }
 }
